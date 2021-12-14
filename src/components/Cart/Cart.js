@@ -1,9 +1,10 @@
-import React, { useContext, useState } from "react";
-import Modal from "../UI/Modal";
-import CartItem from "./CartItem";
-import classes from "./Cart.module.css";
-import CartContext from "../../store/cart-context";
-import Checkout from "./Checkout";
+import axios from 'axios';
+import React, { useContext, useState } from 'react';
+import Modal from '../UI/Modal';
+import CartItem from './CartItem';
+import classes from './Cart.module.css';
+import CartContext from '../../store/cart-context';
+import Checkout from './Checkout';
 
 const Cart = (props) => {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -26,19 +27,26 @@ const Cart = (props) => {
   const submitOrderHandler = async (userData) => {
     setIsSubmitting(true);
     const response = await fetch(
-      "https://using-custom-hooks-b2687-default-rtdb.firebaseio.com/orders.json",
+      'https://using-custom-hooks-b2687-default-rtdb.firebaseio.com/orders.json',
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify({
           user: userData,
           orderedItems: cartCtx.items,
         }),
       }
     );
-    if (!response.ok) {
-      throw new Error("Something went wrong");
-    }
+      const sendData = {user: userData, orderedItems: cartCtx.items, totalPrice: cartCtx.totalAmount};
+
+    let res = await axios.post(
+      'https://chidiebere-vidly.herokuapp.com/api/orders',
+      sendData,
+    );
     
+    if (!response.ok) {
+      throw new Error('Something went wrong');
+    }
+
     setIsSubmitting(false);
     setDidSubmit(true);
 
@@ -48,7 +56,7 @@ const Cart = (props) => {
   const totalAmount = cartCtx.totalAmount.toFixed(2);
   const hasItems = cartCtx.items.length > 0;
   const cartItems = (
-    <ul className={classes["cart-items"]}>
+    <ul className={classes['cart-items']}>
       {cartCtx.items.map((item) => (
         <CartItem
           key={item.id}
@@ -63,7 +71,7 @@ const Cart = (props) => {
   );
   const modalActions = (
     <div className={classes.actions}>
-      <button className={classes["button--alt"]} onClick={props.onClose}>
+      <button className={classes['button--alt']} onClick={props.onClose}>
         Close
       </button>
       {hasItems && (
@@ -80,17 +88,17 @@ const Cart = (props) => {
         <span>Total Amount</span>
         <span>{`$${totalAmount}`}</span>
       </div>
-      
+
       {isCheckingOut && (
         <Checkout onConfirm={submitOrderHandler} onCancel={props.onClose} />
       )}
       {!isCheckingOut && modalActions}
     </React.Fragment>
   );
-  const isSubmittingModalContent = <p>We are sending your order...</p>
+  const isSubmittingModalContent = <p>We are sending your order...</p>;
   const didSubmitModalContent = (
     <React.Fragment>
-      <p>Your order has been successfully sent!</p>
+      <p>Your order has been recieved! <br />Please check your email for your oder details.</p>
       <div className={classes.actions}>
         <button className={classes.button} onClick={props.onClose}>
           Close
